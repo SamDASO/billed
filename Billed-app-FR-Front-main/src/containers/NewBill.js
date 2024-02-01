@@ -17,19 +17,20 @@ export default class NewBill {
     this.billId = null;
     new Logout({ document, localStorage, onNavigate });
   }
+
   handleChangeFile = (e) => {
     e.preventDefault();
     const file = this.document.querySelector(`input[data-testid="file"]`)
       .files[0];
-    const filePath = e.target.value.split(/\\/g);
-    const fileName = filePath[filePath.length - 1];
 
     if (file) {
       // Check if the file type is valid (JPEG, PNG, or JPG)
       const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i;
-      if (!allowedExtensions.exec(fileName)) {
-        alert("Document invalide.");
-        file.value = "";
+      if (!allowedExtensions.exec(file.name)) {
+        alert(
+          "Document invalide. Veuillez transmettre le justificatif uniquement en format image."
+        );
+        e.target.value = null;
         return;
       }
     }
@@ -51,7 +52,7 @@ export default class NewBill {
         console.log(fileUrl);
         this.billId = key;
         this.fileUrl = fileUrl;
-        this.fileName = fileName;
+        this.fileName = file.name;
       })
       .catch((error) => console.error(error));
   };
