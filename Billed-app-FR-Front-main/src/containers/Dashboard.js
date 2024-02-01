@@ -95,21 +95,21 @@ export default class {
   };
 
   handleEditTicket(e, bill, bills) {
-    if (this.counter === undefined || this.id !== bill.id) {
-      this.counter = 0;
+    if (this.isBillDisplayed === undefined || this.id !== bill.id) {
+      this.isBillDisplayed = false;
     } else {
-      // toggle the counter value between 0 and 1 only
-      this.counter = (this.counter + 1) % 2;
+      // toggle the display of the bill between true and false
+      this.isBillDisplayed = !this.isBillDisplayed;
     }
     if (this.id === undefined || this.id !== bill.id) this.id = bill.id;
-    if (this.counter === 0) {
+    if (this.isBillDisplayed === false) {
       bills.forEach((b) => {
         $(`#open-bill${b.id}`).css({ background: "#0D5AE5" });
       });
       $(`#open-bill${bill.id}`).css({ background: "#2A2B35" });
       $(".dashboard-right-container div").html(DashboardFormUI(bill));
       $(".vertical-navbar").css({ height: "150vh" });
-      this.counter++;
+      this.isBillDisplayed = !this.isBillDisplayed;
     } else {
       $(`#open-bill${bill.id}`).css({ background: "#0D5AE5" });
 
@@ -117,15 +117,11 @@ export default class {
         <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
       `);
       $(".vertical-navbar").css({ height: "120vh" });
-      this.counter++;
+      this.isBillDisplayed = !this.isBillDisplayed;
     }
     $("#icon-eye-d").click(this.handleClickIconEye);
     $("#btn-accept-bill").click((e) => this.handleAcceptSubmit(e, bill));
     $("#btn-refuse-bill").click((e) => this.handleRefuseSubmit(e, bill));
-    console.log(
-      "counter value after deciding if the bill details is open or not:",
-      this.counter
-    );
   }
 
   handleAcceptSubmit = (e, bill) => {
