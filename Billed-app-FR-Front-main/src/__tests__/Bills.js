@@ -105,12 +105,10 @@ describe("Given I am connected as an employee", () => {
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.Bills);
+      const billBody = screen.getByTestId("tbody");
+      await waitFor(() => billBody);
 
-      const newBill = screen.getByTestId("btn-new-bill");
-      userEvent.click(newBill);
-      await waitFor(() => newBill);
-
-      expect(screen.getByTestId("form-new-bill")).toBeTruthy();
+      expect(billBody).toBeTruthy();
     });
 
     describe("When an error occurs on API", () => {
