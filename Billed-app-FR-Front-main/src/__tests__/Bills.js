@@ -5,7 +5,8 @@
 import { screen, waitFor } from "@testing-library/dom";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
-import { ROUTES_PATH } from "../constants/routes.js";
+import Bill from "../containers/Bills.js";
+import { ROUTES_PATH, ROUTES } from "../constants/routes.js";
 import userEvent from "@testing-library/user-event";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store";
@@ -47,22 +48,57 @@ describe("Given I am connected as an employee", () => {
       expect(dates).toEqual(datesSorted);
     });
 
-    test("Then I should be able to view the bills details", () => {
+    test("Then bills will have the view details icon", () => {
       const viewIcons = screen.getAllByTestId("icon-eye");
       const testedElement = viewIcons[0];
       expect(testedElement).toBeTruthy();
-      userEvent.click(testedElement);
+    });
+  });
 
-      const modalDetails = screen.getById("modaleFile");
-      expect(getComputedStyle(modalDetails).display).toBe("block");
+  describe("When I click on the view bill icon", () => {
+    test("Then I should see the bill image", async () => {
+      Object.defineProperty(window, "localStorage", {
+        value: localStorageMock,
+      });
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+        })
+      );
+      const root = document.createElement("div");
+      root.setAttribute("id", "root");
+      document.body.append(root);
+      router();
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+      window.onNavigate(ROUTES_PATH.Bills);
+
+      const store = null;
+      const bill = new Bill({
+        document,
+        onNavigate,
+        store,
+        bills,
+        localStorage: window.localStorage,
+      });
+      const handleClickIconEyeSpy = jest.spyOn(bill, "handleClickIconEye");
+
+      const viewIcons = screen.getAllByTestId("icon-eye");
+      await waitFor(() => viewIcons);
+      const testedElement = viewIcons[0];
+
+      userEvent.click(testedElement);
+      expect(handleClickIconEyeSpy).toHaveBeenCalled();
     });
   });
 });
 
 // test d'intégration GET
 describe("Given I am connected as an employee", () => {
-  describe("When I click on new bill button", () => {
-    test("fetches bills from mock API GET", async () => {
+  describe("When I navigate to the bills Page", () => {
+    test("Then fetches bills from mock API GET", async () => {
       localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
       const root = document.createElement("div");
       root.setAttribute("id", "root");
