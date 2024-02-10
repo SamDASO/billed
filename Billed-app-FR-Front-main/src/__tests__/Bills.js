@@ -50,7 +50,6 @@ describe("Given I am connected as an employee", () => {
 
     test("Then bills will have the view details icon", () => {
       document.body.innerHTML = BillsUI({ data: bills });
-      console.log(document.body.innerHTML);
       const viewIcons = screen.getAllByTestId("icon-eye");
       const testedElement = viewIcons[0];
       expect(testedElement).toBeTruthy();
@@ -58,7 +57,7 @@ describe("Given I am connected as an employee", () => {
   });
 
   describe("When I click on the view bill icon", () => {
-    test("Then I should see the bill image", async () => {
+    test("Then I should see the bill info", async () => {
       Object.defineProperty(window, "localStorage", {
         value: localStorageMock,
       });
@@ -109,10 +108,11 @@ describe("Given I am connected as an employee", () => {
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.Bills);
+      await waitFor(() => screen.getByTestId("tbody"));
       const billBody = screen.getByTestId("tbody");
-      await waitFor(() => billBody);
+      const bills = billBody.getElementsByTagName("tr");
 
-      expect(billBody).toBeTruthy();
+      expect(bills.length).toBe(4);
     });
 
     describe("When an error occurs on API", () => {
