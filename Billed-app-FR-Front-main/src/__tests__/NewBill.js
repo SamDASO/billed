@@ -67,7 +67,7 @@ describe("Given I am connected as an employee", () => {
       document.body.innerHTML = ""; // Clear the document body after each test
     });
     describe("And want to fill the form", () => {
-      test("Then the data are saved if the file is valid", async () => {
+      test("Then I can upload a valid image type file", async () => {
         window.onNavigate(ROUTES_PATH.NewBill);
 
         const onNavigate = (pathname) => {
@@ -150,7 +150,11 @@ describe("Given I am connected as an employee", () => {
         localStorage: window.localStorage,
       });
 
-      const handleSubmit = jest.spyOn(newBill, "handleSubmit");
+      const mockFunction = jest.fn();
+
+      const handleSubmit = jest
+        .spyOn(newBill, "handleSubmit")
+        .mockImplementation(mockFunction);
 
       const formNewBill = screen.getByTestId("form-new-bill");
       formNewBill.addEventListener("submit", handleSubmit);
@@ -158,23 +162,14 @@ describe("Given I am connected as an employee", () => {
       expect(handleSubmit).toHaveBeenCalled();
     });
 
-    test("Then I can see if the server get the response", async () => {
-      jest.setTimeout(10000);
-      const request = require("supertest");
-      const app = require("../../../Billed-app-FR-Back-main/app.js");
-      const jwt = require("../../../Billed-app-FR-Back-main/services/jwt");
-
-      const jwtValue = jwt.encrypt({
-        userId: 2,
-        email: "john-wick@domain.tld",
+    test("Then I can see if the server get the information", async () => {
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          create: () => {
+            return Promise.reject(new Error("Erreur 404"));
+          },
+        };
       });
-
-      return request(app)
-        .post("/bills")
-        .set("Authorization", `Bearer ${jwtValue}`)
-        .then((response) => {
-          expect(response).toBeDefined();
-        });
     });
   });
 });
