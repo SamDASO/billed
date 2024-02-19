@@ -30,6 +30,7 @@ describe("Given I am connected as an employee", () => {
       root.setAttribute("id", "root");
       document.body.appendChild(root);
       router();
+      window.onNavigate(ROUTES_PATH.NewBill);
 
       const storeCreateMock = jest.fn(() =>
         Promise.resolve({
@@ -62,14 +63,9 @@ describe("Given I am connected as an employee", () => {
         update: storeUpdateMock,
       }));
     });
-    afterEach(() => {
-      jest.clearAllMocks();
-      document.body.innerHTML = ""; // Clear the document body after each test
-    });
+
     describe("And want to fill the form", () => {
       test("Then I can upload a valid image type file", async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname });
         };
@@ -99,8 +95,6 @@ describe("Given I am connected as an employee", () => {
       });
 
       test("Then I received an alert message if the file upload is not an image", async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname });
         };
@@ -134,8 +128,6 @@ describe("Given I am connected as an employee", () => {
     });
 
     test("Then I can submit the newBill", () => {
-      window.onNavigate(ROUTES_PATH.NewBill);
-
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
