@@ -15,6 +15,7 @@ describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
     beforeEach(() => {
       jest.mock("../app/store", () => mockStore);
+
       jest.spyOn(mockStore, "bills");
       Object.defineProperty(window, "localStorage", {
         value: localStorageMock,
@@ -31,37 +32,6 @@ describe("Given I am connected as an employee", () => {
       document.body.appendChild(root);
       router();
       window.onNavigate(ROUTES_PATH.NewBill);
-
-      const storeCreateMock = jest.fn(() =>
-        Promise.resolve({
-          fileUrl: "https://localhost:3456/images/test.jpg",
-          key: "1234",
-        })
-      );
-
-      const storeUpdateMock = jest.fn(() =>
-        Promise.resolve({
-          id: "47qAXb6fIm2zOKkLzMro",
-          vat: "80",
-          fileUrl:
-            "https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a",
-          status: "pending",
-          type: "Hôtel et logement",
-          commentary: "séminaire billed",
-          name: "encore",
-          fileName: "preview-facture-free-201801-pdf-1.jpg",
-          date: "2004-04-04",
-          amount: 400,
-          commentAdmin: "ok",
-          email: "a@a",
-          pct: 20,
-        })
-      );
-
-      mockStore.bills.mockImplementationOnce(() => ({
-        create: storeCreateMock,
-        update: storeUpdateMock,
-      }));
     });
 
     describe("And want to fill the form", () => {
@@ -154,13 +124,144 @@ describe("Given I am connected as an employee", () => {
       expect(handleSubmit).toHaveBeenCalled();
     });
 
-    test("Then I can see if the server get the information", async () => {
-      mockStore.bills.mockImplementationOnce(() => {
-        return {
-          create: () => {
-            return Promise.reject(new Error("Erreur 404"));
-          },
+    //tests POST
+    describe("Tests for server responses", () => {
+      let errorSpy;
+
+      beforeEach(() => {
+        errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      });
+
+      afterEach(() => {
+        errorSpy.mockRestore(); // Restore the mock after each test
+      });
+      test("Then we logged a console.log when the server send a 200 HTTP request", async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
         };
+
+        document.body.innerHTML = NewBillUI();
+
+        mockStore.bills.mockImplementationOnce(() => {
+          return {
+            create: () => {
+              return Promise.resolve({
+                fileUrl: "https://localhost:3456/images/test.jpg",
+                key: "1234",
+              });
+            },
+          };
+        });
+
+        const store = mockStore;
+        const newBill = new NewBill({
+          document,
+          onNavigate,
+          store,
+          localStorage: window.localStorage,
+        });
+
+        await waitFor(() => screen.getByTestId("file"));
+        const handleChangeFile = jest.spyOn(newBill, "handleChangeFile");
+
+        const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+        const fileInput = screen.getByTestId("file");
+        const pngFile = new File(["image"], "is-an-image.png", {
+          type: "image/png",
+        });
+
+        userEvent.upload(fileInput, pngFile);
+
+        await waitFor(() => {
+          expect(logSpy).toHaveBeenCalled();
+          const logArg = console.log.mock.calls[0][0];
+
+          expect(logArg).toBe("https://localhost:3456/images/test.jpg");
+        });
+      });
+
+      test("Then we logged an error if the server answer an error 404", async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+
+        document.body.innerHTML = NewBillUI();
+
+        mockStore.bills.mockImplementationOnce(() => {
+          return {
+            create: () => {
+              return Promise.reject(new Error("Erreur 404"));
+            },
+          };
+        });
+
+        const store = mockStore;
+        const newBill = new NewBill({
+          document,
+          onNavigate,
+          store,
+          localStorage: window.localStorage,
+        });
+
+        await waitFor(() => screen.getByTestId("file"));
+        const handleChangeFile = jest.spyOn(newBill, "handleChangeFile");
+
+        const fileInput = screen.getByTestId("file");
+        const pngFile = new File(["image"], "is-an-image.png", {
+          type: "image/png",
+        });
+
+        userEvent.upload(fileInput, pngFile);
+
+        await waitFor(() => {
+          expect(errorSpy).toHaveBeenCalled();
+          const errorArg = console.error.mock.calls[0][0];
+
+          expect(errorArg).toBeInstanceOf(Error);
+          expect(errorArg.message).toBe("Erreur 404");
+        });
+      });
+
+      test("Then we logged an error if the server answer an error 500", async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+
+        document.body.innerHTML = NewBillUI();
+
+        mockStore.bills.mockImplementationOnce(() => {
+          return {
+            create: () => {
+              return Promise.reject(new Error("Erreur 500"));
+            },
+          };
+        });
+
+        const store = mockStore;
+        const newBill = new NewBill({
+          document,
+          onNavigate,
+          store,
+          localStorage: window.localStorage,
+        });
+
+        await waitFor(() => screen.getByTestId("file"));
+        const handleChangeFile = jest.spyOn(newBill, "handleChangeFile");
+
+        const fileInput = screen.getByTestId("file");
+        const pngFile = new File(["image"], "is-an-image.png", {
+          type: "image/png",
+        });
+
+        userEvent.upload(fileInput, pngFile);
+
+        await waitFor(() => {
+          expect(errorSpy).toHaveBeenCalled();
+          const errorArg = console.error.mock.calls[0][0];
+
+          expect(errorArg).toBeInstanceOf(Error);
+          expect(errorArg.message).toBe("Erreur 500");
+        });
       });
     });
   });
